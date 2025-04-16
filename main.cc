@@ -42,11 +42,10 @@ protected:
     {
       /* Disk data loading */
 
+      // Reading the questions
+
       std::ifstream perguntas_txt ("perguntas.txt");
       if (!perguntas_txt.is_open()) return -1;
-
-      std::ifstream ranking_txt ("ranking.txt");
-      if (!ranking_txt.is_open()) return -1;
 
       std::string stmp;
 
@@ -68,6 +67,13 @@ protected:
         
         perguntas.push_back(p);
       }
+
+      perguntas_txt.close();
+
+      // Reading the ranking
+
+      std::ifstream ranking_txt ("ranking.txt");
+      if (!ranking_txt.is_open()) return -1;
       
       while (!ranking_txt.eof())
       {
@@ -78,7 +84,6 @@ protected:
         ranking.push_back(j);
       }
       
-      perguntas_txt.close();
       ranking_txt.close();
 
       return 0;
