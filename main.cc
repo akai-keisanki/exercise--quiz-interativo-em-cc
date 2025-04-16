@@ -6,6 +6,7 @@
 
 #include <array>
 #include <vector>
+#include <list>
 
 class Program
 {
@@ -15,6 +16,8 @@ protected:
   {
   public:
 
+    /* Data structs */
+
     struct Pergunta
     {
       std::string enunciado;
@@ -22,10 +25,23 @@ protected:
       char resposta;
     };
 
+    struct Jogador
+    {
+      std::string nome;
+      size_t pontuacao;
+    };
+
+    /* Data storage */
+
     std::vector<Pergunta> perguntas;
+    std::list<Jogador> ranking;
+
+    /* Disk data manipulation functions */
     
     signed load_data (void)
     {
+      /* Disk data loading */
+
       std::ifstream perguntas_txt ("perguntas.txt");
       if (!perguntas_txt.is_open()) return -1;
 
@@ -52,14 +68,30 @@ protected:
         
         perguntas.push_back(p);
       }
+      
+      while (!ranking_txt.eof())
+      {
+        Jogador j;
 
-      // TODO: Read ranking
+        perguntas_txt >> j.nome >> j.pontuacao;
 
+        ranking.push_back(j);
+      }
+      
       perguntas_txt.close();
       ranking_txt.close();
 
       return 0;
     }
+
+    signed update_data (void)
+    {
+      /* Disk data updating */
+
+      // TODO: Make disk data updating
+      
+      return 0;
+    };
 
   } data;
 
@@ -68,7 +100,9 @@ protected:
   public:
 
     signed perguntar (Data::Pergunta p)
-    {
+    { 
+      /* Show question interface */
+
       // TODO: Build question interface
 
       return -1;
@@ -76,11 +110,17 @@ protected:
 
     signed fim (void)
     {
+      /* Show ending interface */
+
+      // TODO: Build the end interface
+
       return 0;
     }
 
     void ranking (void)
     {
+      /* Show ranking interface */
+
       // TODO: Show ranking
 
       return;
@@ -90,17 +130,19 @@ protected:
 
 public:
 
-  void main (void)
+  signed run_user_interface (void)
   {
+    /* Main interface program */
+
     // TODO: Run interface
 
-    return;
+    return 0;
   }
 };
 
 signed main (void)
 {
-  Program program;
-  program.main();
-  return 0;
+  /* Main program function */
+
+  return Program().run_user_interface();
 }
