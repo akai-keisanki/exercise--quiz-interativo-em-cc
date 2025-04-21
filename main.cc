@@ -21,8 +21,15 @@ protected:
     Data ()
     {
       if (!load_data())
-        std::cerr << "Erro: Arquivo 'perguntas.txt' nao encontrado ou invalido." << std::endl;
+        std::cerr << "Erro: Arquivo 'perguntas.txt' nao encontrado ou invalido para leitura." << std::endl;
     }
+
+    ~ Data ()
+    {
+      if (!update_data())
+        std::cerr << "Erro: Arquivo 'perguntas.txt' nao encontrado ou invalido para escrita." << std::endl;
+    }
+
 
     /* Data structs */
 
@@ -71,7 +78,7 @@ protected:
         }
 
         std::getline(perguntas_txt, stmp);
-        p.resposta = stmp[0];
+        p.resposta = stmp[0] - 'A';
         
         perguntas.push_back(p);
 
@@ -112,25 +119,23 @@ protected:
 
       for (const Pergunta& p : perguntas)
       {
-        perguntas_txt << p.enunciado << std::endl;
+        if (!(perguntas_txt << p.enunciado << std::endl)) return 1;
 
         for (const std::string& s : p.questoes)
-          perguntas_txt << s << std::endl;
+          if (!(perguntas_txt << s << std::endl)) return 1;
 
-        perguntas_txt << p.resposta << std::endl << std::endl;
+        if (!(perguntas_txt << p.resposta << std::endl << std::endl)) return 1;
       }
 
       perguntas_txt.close();
       
-      // Reading the ranking
+      // Writing the ranking
 
       std::ofstream ranking_txt ("ranking.txt");
       if (!ranking_txt.is_open()) return -1;
       
       for (Jogador& j : ranking)
-      {
-        perguntas_txt << j.nome << j.pontuacao;
-      }
+        if (!(perguntas_txt << j.nome << j.pontuacao)) return 1;
       
       ranking_txt.close();
 
@@ -141,15 +146,30 @@ protected:
 
   class UserInterface
   {
+  protected:
+    
+    size_t points;
+
   public:
 
-    signed perguntar (const size_t& i)
+    signed perguntar (const size_t& i, const Data::Pergunta& p)
     { 
       /* Show question interface for question `i` */
 
-      // TODO: Build question interface
+      char ans;
 
-      return -1;
+      std::cout << "Pergunta " << i << ':' << std::endl ;
+
+      std::cout << p.enunciado << std::endl << std::endl;
+
+      for (const std::string& s : p.questoes)
+        std::cout << s << std::endl;
+
+      std::cout << "Digite sua resposta (A-D): ";
+
+      if (!(std::cin >> ans)) return -1;
+
+      return ans - 'A';
     }
 
     signed fim (void)
@@ -173,6 +193,8 @@ protected:
   } user_interface;
 
 public:
+
+  Program () {}
 
   signed run_user_interface (void)
   {
