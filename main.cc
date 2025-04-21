@@ -16,6 +16,14 @@ protected:
   {
   public:
 
+    /* Disk data initialization process */
+
+    Data ()
+    {
+      if (!load_data())
+        std::cerr << "Erro: Arquivo 'perguntas.txt' nao encontrado ou invalido." << std::endl;
+    }
+
     /* Data structs */
 
     struct Pergunta
@@ -49,23 +57,27 @@ protected:
 
       std::string stmp;
 
-      while (!perguntas_txt.eof())
+      while (true)
       {
         Pergunta p;
 
-        std::getline(perguntas_txt, stmp);
+        if (!std::getline(perguntas_txt, stmp)) return 1;
         p.enunciado.assign(stmp);
 
         for (std::string& s : p.questoes)
         {
-          std::getline(perguntas_txt, stmp);
+          if (!std::getline(perguntas_txt, stmp)) return 1;
           s.assign(stmp);
         }
 
-        if (!std::getline(perguntas_txt, stmp)) return 1;
+        std::getline(perguntas_txt, stmp);
         p.resposta = stmp[0];
         
         perguntas.push_back(p);
+
+        if (perguntas_txt.eof()) break;
+
+        if (!std::getline(perguntas_txt, stmp)) return 1;
       }
 
       perguntas_txt.close();
@@ -79,7 +91,7 @@ protected:
       {
         Jogador j;
 
-        perguntas_txt >> j.nome >> j.pontuacao;
+        ranking_txt >> j.nome >> j.pontuacao;
 
         ranking.push_back(j);
       }
@@ -93,8 +105,35 @@ protected:
     {
       /* Disk data updating */
 
-      // TODO: Make disk data updating
+      // Writing the questions
+
+      std::ofstream perguntas_txt ("perguntas.txt");
+      if (!perguntas_txt.is_open()) return -1;
+
+      for (const Pergunta& p : perguntas)
+      {
+        perguntas_txt << p.enunciado << std::endl;
+
+        for (const std::string& s : p.questoes)
+          perguntas_txt << s << std::endl;
+
+        perguntas_txt << p.resposta << std::endl << std::endl;
+      }
+
+      perguntas_txt.close();
       
+      // Reading the ranking
+
+      std::ofstream ranking_txt ("ranking.txt");
+      if (!ranking_txt.is_open()) return -1;
+      
+      for (Jogador& j : ranking)
+      {
+        perguntas_txt << j.nome << j.pontuacao;
+      }
+      
+      ranking_txt.close();
+
       return 0;
     };
 
@@ -104,9 +143,9 @@ protected:
   {
   public:
 
-    signed perguntar (Data::Pergunta p)
+    signed perguntar (const size_t& i)
     { 
-      /* Show question interface */
+      /* Show question interface for question `i` */
 
       // TODO: Build question interface
 
