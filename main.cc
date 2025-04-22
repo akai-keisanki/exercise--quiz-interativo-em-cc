@@ -82,7 +82,6 @@ protected:
         perguntas.push_back(p);
 
         if (perguntas_txt.eof()) break;
-
         std::getline(perguntas_txt, stmp);
       }
 
@@ -99,10 +98,12 @@ protected:
         Jogador j;
 
         ranking_txt >> j.nome >> j.pontuacao;
-
+        if (j.nome.empty()) break;
         if (ranking_txt.bad()) return 1;
-
         ranking.push_back(j);
+
+        if (ranking_txt.eof()) break;
+        std::getline(ranking_txt, stmp);
       }
       
       ranking_txt.close();
@@ -227,6 +228,8 @@ public:
     size_t points = 0;
     char ans;
 
+    std::cout << std::endl;
+
     // Ask the questions and score
 
     for (size_t i = 0; i < data.perguntas.size(); i ++)
@@ -242,11 +245,15 @@ public:
       // Pontuação
       
       if (ans == data.perguntas[i].resposta) points ++;
+
+      std::cout << std::endl;
     }
 
     // End
 
     Data::Jogador j {user_interface.fim(points, data.perguntas.size()), points};
+
+    std::cout << std::endl;
 
     // Preparando ranking
 
@@ -265,6 +272,8 @@ public:
 
     // Ranking
     user_interface.ranking(data.ranking);
+
+    std::cout << std::endl;
 
     // Sucessful return
     return 0;
