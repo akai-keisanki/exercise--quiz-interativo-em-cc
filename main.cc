@@ -22,14 +22,14 @@ protected:
 
     Data ()
     {
-      if (!load_data())
-        std::cerr << "Erro: Arquivo 'perguntas.txt' nao encontrado ou invalido para leitura." << std::endl;
+      if (load_data())
+        std::cerr << "Erro: Arquivo 'perguntas.txt' ou 'ranking.txt' nao encontrado ou invalido para leitura." << std::endl;
     }
 
     ~ Data ()
     {
-      if (!update_data())
-        std::cerr << "Erro: Arquivo 'perguntas.txt' nao encontrado ou invalido para escrita." << std::endl;
+      if (update_data())
+        std::cerr << "Erro: Arquivo 'ranking.txt' nao encontrado ou invalido para escrita." << std::endl;
     }
 
 
@@ -61,23 +61,20 @@ protected:
 
       // Reading the questions
 
-      std::ifstream perguntas_txt ("perguntas.txt");
+      std::ifstream perguntas_txt;
+      perguntas_txt.open("perguntas.txt");
       if (!perguntas_txt.is_open()) return -1;
 
       std::string stmp;
 
-      while (true)
+      while (!perguntas_txt.eof())
       {
         Pergunta p;
 
-        if (!std::getline(perguntas_txt, stmp)) return 1;
-        p.enunciado.assign(stmp);
+        if (!std::getline(perguntas_txt, p.enunciado)) return 1;
 
         for (std::string& s : p.questoes)
-        {
-          if (!std::getline(perguntas_txt, stmp)) return 1;
-          s.assign(stmp);
-          }
+          if (!std::getline(perguntas_txt, s)) return 1;
 
         std::getline(perguntas_txt, stmp);
         p.resposta = stmp[0] - 'A';
@@ -86,14 +83,15 @@ protected:
 
         if (perguntas_txt.eof()) break;
 
-        if (!std::getline(perguntas_txt, stmp)) return 1;
+        std::getline(perguntas_txt, stmp);
       }
 
       perguntas_txt.close();
 
       // Reading the ranking
 
-      std::ifstream ranking_txt ("ranking.txt");
+      std::ifstream ranking_txt;
+      ranking_txt.open("ranking.txt");
       if (!ranking_txt.is_open()) return -1;
       
       while (!ranking_txt.eof())
@@ -101,6 +99,8 @@ protected:
         Jogador j;
 
         ranking_txt >> j.nome >> j.pontuacao;
+
+        if (ranking_txt.bad()) return 1;
 
         ranking.push_back(j);
       }
@@ -114,30 +114,14 @@ protected:
     {
       /* Disk data updating */
 
-      // Writing the questions
-
-      std::ofstream perguntas_txt ("perguntas.txt");
-      if (!perguntas_txt.is_open()) return -1;
-
-      for (const Pergunta& p : perguntas)
-      {
-        if (!(perguntas_txt << p.enunciado << std::endl)) return 1;
-
-        for (const std::string& s : p.questoes)
-          if (!(perguntas_txt << s << std::endl)) return 1;
-
-        if (!(perguntas_txt << p.resposta << std::endl << std::endl)) return 1;
-      }
-
-      perguntas_txt.close();
-      
       // Writing the ranking
 
-      std::ofstream ranking_txt ("ranking.txt");
+      std::ofstream ranking_txt;
+      ranking_txt.open("ranking.txt");
       if (!ranking_txt.is_open()) return -1;
       
       for (Jogador& j : ranking)
-        if (!(perguntas_txt << j.nome << j.pontuacao)) return 1;
+        if (!(ranking_txt << j.nome << ' ' << j.pontuacao << std::endl)) return 1;
       
       ranking_txt.close();
 
@@ -168,18 +152,18 @@ protected:
 
       // Answer input
 
-      std::cout << "Digite sua resposta (A-D): ";
+      std::cout << std::endl << "Digite sua resposta (A-D): ";
 
       if (!(std::cin >> ans)) return -1;
 
       while (true)
       {
-        if (ans > 'A' && ans < 'D')
+        if (ans >= 'A' && ans <= 'D')
         {
           ans -= 'A';
           break;
         }
-        if (ans > 'a' && ans < 'd')
+        if (ans >= 'a' && ans <= 'd')
         {
           ans -= 'a';
           break;
@@ -264,6 +248,8 @@ public:
 
     Data::Jogador j {user_interface.fim(points, data.perguntas.size()), points};
 
+    // Preparando ranking
+
     std::vector<Data::Jogador>::iterator it = std::find_if(data.ranking.begin(), data.ranking.end(), [j] (const Data::Jogador& ji) { return ji.nome == j.nome; });
 
     if (it == data.ranking.end())
@@ -275,9 +261,10 @@ public:
       it->pontuacao = j.pontuacao;
     }
 
-    // Preparando ranking
-
     std::sort(data.ranking.begin(), data.ranking.end(), [] (const Data::Jogador& j1, const Data::Jogador& j2) { return j1.pontuacao > j2.pontuacao; });
+
+    // Ranking
+    user_interface.ranking(data.ranking);
 
     // Sucessful return
     return 0;
